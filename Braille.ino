@@ -56,7 +56,16 @@ void loop()
 
 void iniciarmapa()
 {
+  nummap[32]='1';
   nummap[96]='2';
+  nummap[36]='3';
+  nummap[38]='4';
+  nummap[34]='5';
+  nummap[100]='6';
+  nummap[102]='7';
+  nummap[98]='8';
+  nummap[68]='9';
+  nummap[70]='0';
   charmap[32]='a';
   charmap[96]='b';
   charmap[36]='c';
