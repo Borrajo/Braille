@@ -32,40 +32,49 @@ void loop()
   unsigned long l = leerSPI();
   if(l != 0)
   {
-    if (l == NUMBER) //Numero
+    switch (l) 
     {
-      escribirSPI(65);
-      unsigned long r = l;
-      while( r == NUMBER || r == 0)
-      {
-        delay(200);
-        r = leerSPI();
-      }
-      Keyboard.print(nummap[r]);
-      escribirSPI(0);
-      Serial1.println(nummap[r]);
-    }
-    else
-    {
-    if (l == MAYUS) //Numero
-    {
-      unsigned long r = l;
-      while( r == MAYUS || r == 0)
-      {
-        delay(200);
-        r = leerSPI();
-      }
-      Keyboard.print(charmap[l]-32);
-      escribirSPI(0);
-      Serial1.println(charmap[l]-32);
-    }
+    case NUMBER:
+      leerDeTeclado(NUMBER);
+      break;
+    case MAYUS:
+      leerDeTeclado(MAYUS);
+      break;
+    default: 
+    //IMPRIME LA TECLA
      Keyboard.print(charmap[l]);
      Serial.println(charmap[l]);
      char c = charmap[l];
      Serial1.println(c);
+    break;
     }
   }
   delay(210);
+}
+
+void leerDeTeclado(int especial)
+{
+  unsigned long r = l;
+      while( r == especial || r == 0)
+      {
+        delay(200);
+        r = leerSPI();
+      }
+      if(especial == NUMBER)
+      {
+        Keyboard.print(nummap[r]);
+        escribirSPI(0);
+        Serial1.println(nummap[r]);
+
+      }
+      if(especial == MAYUS)
+      {
+        Keyboard.print(charmap[r]-32);
+        escribirSPI(0);
+        Serial1.println(charmap[r]-32);
+
+      }
+    }
 }
 
 void iniciarmapa()
