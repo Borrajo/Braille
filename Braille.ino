@@ -8,6 +8,8 @@
   #define BYTES 1 //Cantidad de bytes (botones y luces)*8 
   #define KEY_BACKSPACE 178
   #define KEY_RETURN 176
+  #define NUMBER 135
+  #define MAYUS 5
   char charmap[256];
   char nummap[256];
  
@@ -30,11 +32,11 @@ void loop()
   unsigned long l = leerSPI();
   if(l != 0)
   {
-    if (l == 30) //Numero
+    if (l == NUMBER) //Numero
     {
       escribirSPI(65);
       unsigned long r = l;
-      while( r == 30 || r == 0)
+      while( r == NUMBER || r == 0)
       {
         delay(200);
         r = leerSPI();
@@ -45,6 +47,18 @@ void loop()
     }
     else
     {
+    if (l == MAYUS) //Numero
+    {
+      unsigned long r = l;
+      while( r == MAYUS || r == 0)
+      {
+        delay(200);
+        r = leerSPI();
+      }
+      Keyboard.print(charmap[l]-32);
+      escribirSPI(0);
+      Serial1.println(charmap[l]-32);
+    }
      Keyboard.print(charmap[l]);
      Serial.println(charmap[l]);
      char c = charmap[l];
