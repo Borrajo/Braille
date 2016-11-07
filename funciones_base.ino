@@ -3,7 +3,7 @@
 unsigned long leerSPI()
 {
   unsigned long valor = 0;
-  SPI.setBitOrder(LSBFIRST);
+  SPI.setBitOrder(MSBFIRST);
   digitalWrite(SSB,LOW);
   for(int i = 0 ; i < BYTES; i++)
   {  
@@ -16,7 +16,7 @@ unsigned long leerSPI()
 void escribirSPI(unsigned long num)
 {
   byte dato;
-  SPI.setBitOrder(LSBFIRST);
+  SPI.setBitOrder(MSBFIRST);
   digitalWrite(SSL,LOW);
   //Descomponemos el numero en sus bytes para enviarlos de a uno.
   //al final de la funcion num siempre valdrá 0.

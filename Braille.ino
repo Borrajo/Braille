@@ -18,13 +18,14 @@ void setup()
   Serial.begin(9600);
   Serial1.begin(9600);
   SPI.begin();
-  SPI.setClockDivider(SPI_CLOCK_DIV8);
+  SPI.setClockDivider(SPI_CLOCK_DIV4);
   pinMode(SSB,OUTPUT);
   pinMode(SSL,OUTPUT);
   digitalWrite(SSB,HIGH);
   digitalWrite(SSL,HIGH); 
   Keyboard.begin();
   iniciarmapa();
+  escribirSPI(0x00);
 }
 
 void loop()
@@ -35,24 +36,31 @@ void loop()
     switch (l) 
     {
     case NUMBER:
-      leerDeTeclado(NUMBER);
+      {
+        Serial.println(l);
+        leerDeTeclado(NUMBER,l);
+      }
       break;
     case MAYUS:
-      leerDeTeclado(MAYUS);
+      {
+        leerDeTeclado(MAYUS,l);
+      }
       break;
-    default: 
-    //IMPRIME LA TECLA
-     Keyboard.print(charmap[l]);
-     Serial.println(charmap[l]);
-     char c = charmap[l];
-     Serial1.println(c);
-    break;
+    default:
+      { 
+        //IMPRIME LA TECLA
+        Keyboard.print(charmap[l]);
+        Serial.println(charmap[l]);
+        char c = charmap[l];
+        Serial1.println(c);
+      }
+      break;
     }
   }
   delay(210);
 }
 
-void leerDeTeclado(int especial)
+void leerDeTeclado(char especial,char l)
 {
   unsigned long r = l;
       while( r == especial || r == 0)
@@ -62,19 +70,16 @@ void leerDeTeclado(int especial)
       }
       if(especial == NUMBER)
       {
-        Keyboard.print(nummap[r]);
-        escribirSPI(0);
-        Serial1.println(nummap[r]);
+        Keyboard.print(char(nummap[r]));
+        Serial1.println(char(nummap[r]));
 
       }
       if(especial == MAYUS)
       {
-        Keyboard.print(charmap[r]-32);
-        escribirSPI(0);
-        Serial1.println(charmap[r]-32);
+        Keyboard.print(char(charmap[r]-32));
+        Serial1.println(char(charmap[r]-32));
 
       }
-    }
 }
 
 void iniciarmapa()
@@ -136,6 +141,7 @@ void iniciarmapa()
   charmap[227]='á';
   charmap[229]='&';
   charmap[129]='_';
+  charmap[8]=' ';
   charmap[24]=KEY_RETURN;
   charmap[16]=KEY_BACKSPACE;
 }
