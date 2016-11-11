@@ -24,6 +24,7 @@ void setup()
   digitalWrite(SSB,HIGH);
   digitalWrite(SSL,HIGH); 
   Keyboard.begin();
+  inicializar();
   iniciarmapa();
   escribirSPI(0x00);
 }
@@ -57,7 +58,7 @@ void loop()
       break;
     }
   }
-  delay(210);
+  delay(260);
 }
 
 void leerDeTeclado(char especial,char l)
@@ -78,7 +79,6 @@ void leerDeTeclado(char especial,char l)
       {
         Keyboard.print(char(charmap[r]-32));
         Serial1.println(char(charmap[r]-32));
-
       }
 }
 
@@ -104,7 +104,7 @@ void iniciarmapa()
   charmap[98]='h';
   charmap[68]='i';
   charmap[70]='j';
-  charmap[162]='k';
+  charmap[160]='k';
   charmap[224]='l';
   charmap[164]='m';
   charmap[166]='n';
@@ -144,5 +144,14 @@ void iniciarmapa()
   charmap[8]=' ';
   charmap[24]=KEY_RETURN;
   charmap[16]=KEY_BACKSPACE;
+}
+
+void inicializar()
+{
+  for(int i = 0 ; i<256 ; i++)
+  {
+    charmap[i]= '\0';
+    nummap[i]= '\0';
+  }
 }
 
