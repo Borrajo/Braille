@@ -1,3 +1,19 @@
+  /*
+   *****************************************
+   *            TECLADO BRAILLE            *
+   *  Fecha:                    22/10/16   *          
+   *                                       *
+   *  Utilizando el protocolo SPI se logra *                                     
+   *  tomar el valor de los 8 botones  y   *
+   *  obtener un numero resultante que es  *
+   *  la combinacion de las teclas presio- *
+   *  nadas                                *
+   *                                       *
+   *  Se Utiliza un Arduino Leonardo       *
+   *                                       *
+   *****************************************  
+   */
+  
   #include <SPI.h>
   #include "Keyboard.h"
  // #define DATAout 51
@@ -15,6 +31,7 @@
  
 void setup()
 {
+  inicializar();
   Serial.begin(9600);
   Serial1.begin(9600);
   SPI.begin();
@@ -24,7 +41,6 @@ void setup()
   digitalWrite(SSB,HIGH);
   digitalWrite(SSL,HIGH); 
   Keyboard.begin();
-  inicializar();
   iniciarmapa();
   escribirSPI(0x00);
 }
@@ -34,11 +50,23 @@ void loop()
   unsigned long l = leerSPI();
   if(l != 0)
   {
+    Serial.println(l);
+    for(int i = 0; i < 3 ; i ++)
+    {
+      delay(11);
+      unsigned long u = leerSPI();
+      if(u>l)
+      {
+        l = u ;
+      }
+      Serial.println(u);
+    }
+    Serial.println("----------");
+    Serial.println(l);
     switch (l) 
     {
     case NUMBER:
       {
-        Serial.println(l);
         leerDeTeclado(NUMBER,l);
       }
       break;
@@ -58,28 +86,32 @@ void loop()
       break;
     }
   }
-  delay(260);
+  delay(190);
 }
 
-void leerDeTeclado(char especial,char l)
+void leerDeTeclado(unsigned long especial,char l)
 {
   unsigned long r = l;
       while( r == especial || r == 0)
       {
-        delay(200);
+        delay(180);
         r = leerSPI();
       }
-      if(especial == NUMBER)
+      Serial.println(especial);
+      if(especial == 135)
       {
-        Keyboard.print(char(nummap[r]));
-        Serial1.println(char(nummap[r]));
+        char c = nummap[r];
+        Serial.println(c);
+        Keyboard.print(c);
+        Serial1.println(c);
 
       }
+      else{
       if(especial == MAYUS)
       {
         Keyboard.print(char(charmap[r]-32));
         Serial1.println(char(charmap[r]-32));
-      }
+      }}
 }
 
 void iniciarmapa()
