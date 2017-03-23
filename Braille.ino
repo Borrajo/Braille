@@ -1,7 +1,4 @@
   /*
-   *****************************************
-   *            TECLADO BRAILLE            *
-   *  Fecha:                    22/10/16   *          
    *                                       *
    *  Utilizando el protocolo SPI se logra *                                     
    *  tomar el valor de los 8 botones  y   *
@@ -9,109 +6,123 @@
    *  la combinacion de las teclas presio- *
    *  nadas                                *
    *                                       *
-   *  Se Utiliza un Arduino Leonardo       *
+   *  Se Utiliza un Arduino Micro Pro      *
+   *****************************************
+   *            TECLADO BRAILLE            *
+   *  Fecha:                    22/10/16   *       
    *                                       *
    *****************************************  
    */
-  
   #include <SPI.h>
-  #include "Keyboard.h"
- // #define DATAout 51
- // #define CLK 52
- // #define DATAin 50
-  #define SSB 4 //Select Slave Button
-  #define SSL 2 //Select Slave Led
+  #include <Keyboard.h>
+  #define SSB 10 //Select Slave pin
   #define BYTES 1 //Cantidad de bytes (botones y luces)*8 
-  #define KEY_BACKSPACE 178
-  #define KEY_RETURN 176
+  
+  /*  DEFINICION DE TECLAS NUEVAS AGREGADAS A LAS DE LA LIBRERIA DE ARDUINO */
+ 
+  #define KEY_BACKSPACE  0xB2
+  #define KEY_TAB        0xB3
+  #define KEY_RETURN     0xB0
+ 
+  #define KEY_DELETE     0xD4
+  
+  #define KEY_F8         0xC9
+  #define KEY_F9         0xCA //
+  
   #define NUMBER 135
   #define MAYUS 5
+  
+  // ARREGLOS PARA EL MAPEO del SPI --> CARACTER
   char charmap[256];
-  char nummap[256];
+  char nummap[103];
  
 void setup()
 {
   inicializar();
-  Serial.begin(9600);
-  Serial1.begin(9600);
   SPI.begin();
-  SPI.setClockDivider(SPI_CLOCK_DIV4);
-  pinMode(SSB,OUTPUT);
-  pinMode(SSL,OUTPUT);
-  digitalWrite(SSB,HIGH);
-  digitalWrite(SSL,HIGH); 
+  SPI.setClockDivider(SPI_CLOCK_DIV128);
   Keyboard.begin();
+  pinMode(SSB,OUTPUT);
+  digitalWrite(SSB,HIGH);
   iniciarmapa();
-  escribirSPI(0x00);
 }
 
 void loop()
 {
+  //Leemos del puerto SPI
   unsigned long l = leerSPI();
-  if(l != 0)
+  if(l != 0) //Si fue presionada una tecla
   {
-    Serial.println(l);
-    for(int i = 0; i < 3 ; i ++)
-    {
-      delay(11);
-      unsigned long u = leerSPI();
-      if(u>l)
-      {
-        l = u ;
-      }
-      Serial.println(u);
-    }
-    Serial.println("----------");
-    Serial.println(l);
+    ObtenerTecla(l);
+    //Una vez que ya sabemos con certeza que tecla se presionó, pasamos a ver cual es y actuar en consecuencia.
     switch (l) 
     {
-    case NUMBER:
+    case NUMBER:  //Si se ha apretado el comando para escribir un numero, debemos leer nuevamente un caracter y este deberá corresponder a los numeros
       {
         leerDeTeclado(NUMBER,l);
       }
       break;
-    case MAYUS:
+    case MAYUS:   //Si se ha apretado el comando para escribir una mayuscula, debemos leer un nuevo caracter y aplicarle la mayuscula en caso de que de una letra se trate.
       {
         leerDeTeclado(MAYUS,l);
       }
       break;
     default:
       { 
-        //IMPRIME LA TECLA
-        Keyboard.print(charmap[l]);
-        Serial.println(charmap[l]);
-        char c = charmap[l];
-        Serial1.println(c);
+        //En cualquier otro caso escribimos la tecla leida del puerto SPI.
+        Keyboard.write(charmap[l]);
       }
       break;
     }
   }
   delay(190);
+
+}
+
+unsigned long ObtenerTecla(unsigned letra)
+{
+  unsigned long l = letra;
+  //Leemos 3 veces mas para eliminar errores.
+    for(int i = 0; i < 5 ; i ++)
+    {
+      delay(12);
+
+      unsigned long u = leerSPI();
+      //Suponemos que cada vez que haya errorres será porqué los dedos no presionaron en el mismo instante las teclas.
+      //Como cada tecla presionada siempre suma ( nunca resta al numero total) asumimos que el numero mayor será el correspondiente a la tecla deseada.
+      if(u>l)
+      {
+        l = u ;
+      }
+    }
+    Serial.println(l);
+    return l;
 }
 
 void leerDeTeclado(unsigned long especial,char l)
 {
   unsigned long r = l;
+      //Leemos un nuevo caracter mientras no se presione ninguna tecla o el caracter leido sea igual al especial ( number o mayus) 
       while( r == especial || r == 0)
       {
-        delay(180);
+        delay(190);    
+
         r = leerSPI();
+        r = ObtenerTecla(r);
       }
-      Serial.println(especial);
-      if(especial == 135)
+      if(especial == NUMBER)
       {
         char c = nummap[r];
-        Serial.println(c);
-        Keyboard.print(c);
-        Serial1.println(c);
-
+        Keyboard.write(c);
       }
-      else{
-      if(especial == MAYUS)
+      else
       {
-        Keyboard.print(char(charmap[r]-32));
-        Serial1.println(char(charmap[r]-32));
-      }}
+        if(especial == MAYUS)
+        {
+            char c = charmap[r]-32; 
+            Keyboard.write(c); //32 es la Distancia desde la 'a' a la 'A', de esta manera mostramos las Mayusculas
+        }
+      }
 }
 
 void iniciarmapa()
@@ -140,7 +151,7 @@ void iniciarmapa()
   charmap[224]='l';
   charmap[164]='m';
   charmap[166]='n';
-  charmap[103]='ñ';
+  charmap[103]='ñ';//ñ
   charmap[162]='o';
   charmap[228]='p';
   charmap[230]='q';
@@ -157,22 +168,15 @@ void iniciarmapa()
   charmap[64]=',';
   charmap[65]='?';
   charmap[192]=';';
-  charmap[67]=':';
   charmap[132]='/';
   charmap[194]='!';
   charmap[66]='-';
   charmap[130]='*';
-  charmap[193]='"';
   charmap[97]='(';
   charmap[134]=')';
-  charmap[101]='ü';
-  charmap[199]='ú';
-  charmap[133]='ó';
-  charmap[131]='í';
-  charmap[197]='é';
-  charmap[227]='á';
-  charmap[229]='&';
   charmap[129]='_';
+  charmap[10]= KEY_F8; //IMPRIMIR
+  charmap[9]=KEY_F9; //ESCUCHAR
   charmap[8]=' ';
   charmap[24]=KEY_RETURN;
   charmap[16]=KEY_BACKSPACE;
@@ -186,4 +190,12 @@ void inicializar()
     nummap[i]= '\0';
   }
 }
-
+ 
+ // Funcion substitutiva de la funcion delay()
+void delayMs(unsigned int ms)
+{
+  for (int i = 0; i < ms; i++) {
+    delayMicroseconds(1000);
+  }
+}
+ 

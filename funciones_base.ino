@@ -13,6 +13,7 @@ unsigned long leerSPI()
   return valor;  
 }
 
+/*
 void escribirSPI(unsigned long num)
 {
   byte dato;
@@ -28,4 +29,4 @@ void escribirSPI(unsigned long num)
   }
   digitalWrite(SSL,HIGH);  
 } 
-
+*/
